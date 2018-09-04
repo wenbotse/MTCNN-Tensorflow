@@ -14,6 +14,8 @@ import requests
 from download import download
 import time
 import json
+import hashlib
+
 #0: test 1: online
 run_mode = 0
 test_mode = "ONet"
@@ -28,6 +30,7 @@ epoch = [18, 14, 16]
 batch_size = [2048, 256, 16]
 model_path = ['%s-%s' % (x, y) for x, y in zip(prefix, epoch)]
 img_server_url="http://192.168.0.1:10001"
+path="temp_image"
 # load pnet model
 if slide_window:
     PNet = Detector(P_Net, 12, batch_size[0], model_path[0])
@@ -93,8 +96,13 @@ def run_file():
     for urls in urls_gen:
         gt_imdb = []
         for url in urls:
-            print("begin to download imgurl=",url)
-            name = download("temp_image",url)
+            md5=hashlib.md5(url.encode('utf-8')).hexdigest()
+            name = path+"/"+md5+'.jpg';
+            if os.path.exists(name) == False :
+                print("begin to download imgurl=",url)
+                download("temp_image",url)
+            else:
+                print("exist file name="+name)
             gt_imdb.append(name)
         if len(gt_imdb)==0:
             return
@@ -109,6 +117,7 @@ def run_file():
                 faked_callback(urls[count],0)
             else:
                 faked_callback(urls[count],1)
+            count = count + 1
 def run_http():
     urls = call_4_urls()
     gt_imdb = []

@@ -15,28 +15,30 @@ min_face_size = 24
 stride = 2
 slide_window = False
 shuffle = False
-detectors = [None, None, None]
+detectors = [None,None,None]
 prefix = ['../data/MTCNN_model/PNet_landmark/PNet', '../data/MTCNN_model/RNet_landmark/RNet', '../data/MTCNN_model/ONet_landmark/ONet']
 epoch = [18, 14, 16]
 batch_size = [2048, 256, 16]
 model_path = ['%s-%s' % (x, y) for x, y in zip(prefix, epoch)]
-# load pnet model
+
+
 if slide_window:
     PNet = Detector(P_Net, 12, batch_size[0], model_path[0])
 else:
     PNet = FcnDetector(P_Net, model_path[0])
 detectors[0] = PNet
 
-# load rnet model
 if test_mode in ["RNet", "ONet"]:
     RNet = Detector(R_Net, 24, batch_size[1], model_path[1])
     detectors[1] = RNet
 
-# load onet model
 if test_mode == "ONet":
     ONet = Detector(O_Net, 48, batch_size[2], model_path[2])
     detectors[2] = ONet
-
+'''
+ONet = Detector(O_Net, 48, batch_size[2], model_path[2])
+detectors.append(ONet)
+'''
 mtcnn_detector = MtcnnDetector(detectors=detectors, min_face_size=min_face_size,
                                stride=stride, threshold=thresh, slide_window=slide_window)
 gt_imdb = []
@@ -53,10 +55,11 @@ count = 0
 for imagepath in gt_imdb:
     #print("imagepath=",imagepath)
     image = cv2.imread(imagepath)
-    print(imagepath," bbox=",len(all_boxes[count]))
+    #print(imagepath," bbox=",len(all_boxes[count]))
+    #bbox x1,y1,x2,y2,prob 其中 x1,y1是左上角,左上角图片为坐标0,0
     for bbox in all_boxes[count]:
         cv2.putText(image,str(np.round(bbox[4],2)),(int(bbox[0]),int(bbox[1])),cv2.FONT_HERSHEY_TRIPLEX,1,color=(255,0,255))
-        #print(imagepath," bbox=",bbox)   
+        print(imagepath," bbox=",bbox)   
         cv2.rectangle(image, (int(bbox[0]),int(bbox[1])),(int(bbox[2]),int(bbox[3])),(0,0,255))
         
     '''for landmark in landmarks[count]:
