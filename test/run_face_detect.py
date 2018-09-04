@@ -11,7 +11,7 @@ import cv2
 import os
 import numpy as np
 import requests
-from download import download
+from download import safe_download
 import time
 import json
 import hashlib
@@ -82,7 +82,6 @@ def faked_call_4_urls(num=10):
             urls=[]
         line = f.readline() 
     f.close()  
-
     yield urls
 def faked_callback(url, status):
     print("call back set url=",url," status=",status)
@@ -95,14 +94,16 @@ def run_file():
     urls_gen = faked_call_4_urls()
     for urls in urls_gen:
         gt_imdb = []
+        detect_urls = []
         for url in urls:
             md5=hashlib.md5(url.encode('utf-8')).hexdigest()
             name = path+"/"+md5+'.jpg';
             if os.path.exists(name) == False :
                 print("begin to download imgurl=",url)
-                download("temp_image",url)
+                safe_download("temp_image",url)
             else:
                 print("exist file name="+name)
+            detect_urls.append(url)
             gt_imdb.append(name)
         if len(gt_imdb)==0:
             return
@@ -114,9 +115,9 @@ def run_file():
         count = 0
         for bboxes in all_boxes:
             if len(bboxes) ==0:
-                faked_callback(urls[count],0)
+                faked_callback(detect_urls[count],0)
             else:
-                faked_callback(urls[count],1)
+                faked_callback(detect_urls[count],1)
             count = count + 1
 def run_http():
     urls = call_4_urls()
